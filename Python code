@@ -1,0 +1,141 @@
+# python code
+import re
+import string
+
+def check_password_strength(password):
+    score = 0
+    feedback = []
+
+    # Length checks
+    length = len(password)
+    if length < 6:
+        feedback.append("❌ Too short (minimum 6 characters)")
+    elif length < 8:
+        feedback.append("⚠️  At least 8 characters recommended")
+        score += 1
+    elif length < 12:
+        feedback.append("✅ Good length (8+ characters)")
+        score += 2
+    else:
+        feedback.append("✅ Excellent length (12+ characters)")
+        score += 3
+
+    # Uppercase letters
+    if re.search(r'[A-Z]', password):
+        feedback.append("✅ Contains uppercase letters")
+        score += 1
+    else:
+        feedback.append("❌ No uppercase letters (A-Z)")
+
+    # Lowercase letters
+    if re.search(r'[a-z]', password):
+        feedback.append("✅ Contains lowercase letters")
+        score += 1
+    else:
+        feedback.append("❌ No lowercase letters (a-z)")
+
+    # Digits
+    if re.search(r'\d', password):
+        feedback.append("✅ Contains numbers")
+        score += 1
+    else:
+        feedback.append("❌ No numbers (0-9)")
+
+    # Special characters
+    if re.search(r'[!@#$%^&*(),.?\":{}|<>_\-+=\[\]\\;\'`~/]', password):
+        feedback.append("✅ Contains special characters")
+        score += 2
+    else:
+        feedback.append("❌ No special characters (!@#$%^&*...)")
+
+    # Common patterns to avoid
+    common_passwords = [
+        "password", "123456", "password123", "admin", "letmein",
+        "qwerty", "abc123", "monkey", "master", "welcome"
+    ]
+    if password.lower() in common_passwords:
+        feedback.append("❌ This is a very common password — avoid it!")
+        score = max(0, score - 3)
+
+    # Repeated characters check
+    if re.search(r'(.)\1{2,}', password):
+        feedback.append("⚠️  Contains repeated characters (e.g. 'aaa')")
+        score = max(0, score - 1)
+
+    # Sequential characters check
+    sequences = ["abcdef", "qwerty", "123456", "654321"]
+    for seq in sequences:
+        if seq in password.lower():
+            feedback.append("⚠️  Contains sequential characters (e.g. '123' or 'abc')")
+            score = max(0, score - 1)
+            break
+
+    # Determine strength level
+    if score <= 2:
+        strength = "🔴 WEAK"
+    elif score <= 4:
+        strength = "🟠 FAIR"
+    elif score <= 6:
+        strength = "🟡 GOOD"
+    elif score <= 7:
+        strength = "🟢 STRONG"
+    else:
+        strength = "🟢 VERY STRONG"
+
+    return strength, score, feedback
+
+
+def suggest_strong_password():
+    import random
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    while True:
+        pwd = ''.join(random.choices(chars, k=14))
+        strength, score, _ = check_password_strength(pwd)
+        if score >= 7:
+            return pwd
+
+
+def main():
+    print("=" * 50)
+    print("       🔐 PASSWORD STRENGTH CHECKER")
+    print("=" * 50)
+
+    while True:
+        print("\nOptions:")
+        print("  1. Check a password")
+        print("  2. Generate a strong password")
+        print("  3. Exit")
+        choice = input("\nEnter choice (1/2/3): ").strip()
+
+        if choice == "1":
+            password = input("\nEnter password to check: ")
+            if not password:
+                print("⚠️  No password entered.")
+                continue
+
+            strength, score, feedback = check_password_strength(password)
+
+            print(f"\n{'=' * 40}")
+            print(f"  Password : {'*' * len(password)}")
+            print(f"  Strength : {strength}")
+            print(f"  Score    : {score}/8")
+            print(f"{'=' * 40}")
+            print("\n📋 Detailed Feedback:")
+            for item in feedback:
+                print(f"   {item}")
+
+        elif choice == "2":
+            pwd = suggest_strong_password()
+            print(f"\n✅ Suggested Strong Password: {pwd}")
+            print("   (Copy and save it securely!)")
+
+        elif choice == "3":
+            print("\n👋 Goodbye! Stay safe online.")
+            break
+
+        else:
+            print("⚠️  Invalid choice. Please enter 1, 2, or 3.")
+
+
+if __name__ == "__main__":
+    main()
